@@ -5,280 +5,321 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STOCK EXCHANGE MARKET AND INVESTMENT</title>
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-    font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
-    background:#0a0a0a;color:#fff;
-    padding-top:60px
-}
-.container{max-width:1200px;margin:auto;padding:20px}
-.top-nav{
-    background:#1a1a1a;position:fixed;top:0;left:0;width:100%;
-    display:flex;align-items:center;padding:10px 20px;
-    border-bottom:1px solid #333;z-index:1000
-}
-.top-nav h1{color:#f0b90b;margin-right:20px;font-size:18px}
-.top-nav a{color:#fff;text-decoration:none;padding:10px 15px}
-.top-nav a:hover{background:#333;border-radius:5px}
-
-.modal{
-    display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-    background:rgba(0,0,0,.85);justify-content:center;align-items:center
-}
-.modal-content{
-    background:#1a1a1a;padding:20px;border-radius:10px;
-    width:90%;max-width:420px;text-align:center
-}
-.modal-content h2{color:#f0b90b;margin-bottom:15px}
-.modal-content input, .modal-content select{
-    width:100%;padding:10px;margin:8px 0;
-    background:#333;border:1px solid #444;color:#fff
-}
-.modal-content button{
-    width:100%;padding:10px;background:#f0b90b;
-    border:none;font-weight:bold;cursor:pointer;margin-top:10px
-}
-.error{color:red;margin-top:10px}
-
-.dashboard,.investment,.history,.admin{display:none;padding:20px}
-
-.balance-card,.chart-container,.recent-transactions,.activity-feed{
-    background:#1a1a1a;padding:20px;border-radius:10px;margin-bottom:20px
-}
-.balances,.charts{display:flex;gap:15px}
-.balance-card{flex:1;text-align:center}
-.balance-card h3{color:#f0b90b}
-
-.actions{text-align:center}
-.actions button{
-    padding:10px 20px;margin:5px;background:#f0b90b;
-    border:none;font-weight:bold;cursor:pointer
-}
-
-.transaction{
-    background:#333;padding:10px;margin-bottom:10px;
-    border-radius:5px;display:flex;justify-content:space-between
-}
-
-footer{text-align:center;padding:20px;background:#1a1a1a}
-.admin-user{padding:10px;background:#333;margin:5px;cursor:pointer}
-
-</style>
-</head>
-<body>
-
-<div class="top-nav">
-    <h1>Stock Exchange Market</h1>
-    <a href="#" onclick="showSection('dashboard')">Dashboard</a>
-    <a href="#" onclick="showSection('investment')">Invest</a>
-    <a href="#" onclick="showSection('history')">History</a>
-    <a href="#" onclick="logout()">Logout</a>
-</div>
-
-<!-- LOGIN / REGISTER MODAL -->
-<div id="loginModal" class="modal">
-<div class="modal-content">
-<h2 id="modalTitle">Login</h2>
-
-<div id="loginForm">
-<input id="loginEmail" placeholder="Email">
-<input id="loginPassword" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<p style="margin-top:10px;cursor:pointer;color:#f0b90b" onclick="toggleRegister()">Create an Account</p>
-</div>
-
-<div id="registerForm" style="display:none">
-<input id="fullName" placeholder="Full Name">
-<input id="address" placeholder="House Address">
-<input id="phone" placeholder="Phone Number">
-<input id="regEmail" placeholder="Email">
-<input type="date" id="dob">
-<input type="password" id="regPassword" placeholder="Create Password">
-<button onclick="register()">Create Account</button>
-<p style="margin-top:10px;cursor:pointer;color:#f0b90b" onclick="toggleRegister()">Back to Login</p>
-</div>
-
-<div id="errorMsg" class="error"></div>
-</div>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="dashboard">
-<div class="container">
-<h1>Dashboard</h1>
-
-<div class="balances">
-<div class="balance-card"><h3>Main Balance</h3><p id="mainBalance">$0.00</p></div>
-<div class="balance-card"><h3>Invested</h3><p id="investedBalance">$0.00</p></div>
-<div class="balance-card"><h3>Total Profit</h3><p id="totalProfit">$0.00</p></div>
-</div>
-
-<div class="activity-feed">
-<h3 style="color:#f0b90b">Live Activities</h3>
-<div id="activities"></div>
-</div>
-
-<div class="actions">
-<button onclick="deposit()">Deposit</button>
-<button onclick="withdraw()">Withdraw</button>
-</div>
-</div>
-</div>
-
-<!-- INVEST -->
-<div id="investment" class="investment">
-<div class="container">
-<h2>Invest</h2>
-<select id="crypto">
-<option>BTC</option>
-<option>ETH</option>
-</select>
-<input id="amount" type="number" placeholder="Amount">
-<button onclick="invest()">Invest</button>
-</div>
-</div>
-
-<!-- HISTORY -->
-<div id="history" class="history">
-<div class="container">
-<h2>Transaction History</h2>
-<div id="transactions"></div>
-</div>
-</div>
-
-<!-- ADMIN -->
-<div id="admin" class="admin">
-<div class="container">
-<h2 style="color:#f0b90b">ADMIN PANEL</h2>
-<div id="userList"></div>
-</div>
-</div>
-
-<footer>© Stock Exchange Market & Investment</footer>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-/* STORAGE */
-const users = JSON.parse(localStorage.getItem("users_db")) || {};
-let currentUser = localStorage.getItem("current_user");
-let adminMode = localStorage.getItem("admin_session") === "true";
 
-/* HELPERS */
-function save(){localStorage.setItem("users_db",JSON.stringify(users))}
-function nyDate(){
- return new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York"}).format(new Date())
-}
-function addActivity(msg){
- const a=document.createElement("div");
- a.className="transaction";
- a.innerHTML=`<span>${msg}</span><span>${new Date().toLocaleTimeString()}</span>`;
- activities.prepend(a);
+<style>
+:root{
+  --primary:#f0b90b;
+  --bg:#0b0e11;
+  --card:#161a1f;
+  --border:#2b3139;
+  --text:#eaecef;
+  --muted:#848e9c;
 }
 
-/* INIT */
-window.onload=()=>{
- if(adminMode){showAdmin()}
- else if(currentUser && users[currentUser]){
-   loginModal.style.display="none";
-   showSection("dashboard");
-   loadUser()
- }else loginModal.style.display="flex"
-}
-
-/* AUTH */
-function login(){
- const e=loginEmail.value,p=loginPassword.value;
- if(e==="joyreuben122@gmail.com" && p==="Joyie"){
-   adminMode=true;localStorage.setItem("admin_session","true");
-   loginModal.style.display="none";showAdmin();return
- }
- if(!users[e]||users[e].password!==p){
-   errorMsg.innerText="Invalid credentials";return
- }
- currentUser=e;localStorage.setItem("current_user",e);
- loginModal.style.display="none";showSection("dashboard");loadUser()
-}
-
-function register(){
- const e=regEmail.value;
- if(users[e]){errorMsg.innerText="User exists";return}
- users[e]={
-   name:fullName.value,address:address.value,phone:phone.value,
-   dob:dob.value,password:regPassword.value,
-   main:0,invested:0,profit:0,
-   created:Date.now(),lastInterest:"",activity:[]
- };
- save();toggleRegister();
- errorMsg.innerText="Account created. Please login."
-}
-
-function logout(){
- localStorage.clear();location.reload()
-}
-
-function toggleRegister(){
- loginForm.style.display=loginForm.style.display==="none"?"block":"none";
- registerForm.style.display=registerForm.style.display==="none"?"block":"none";
- modalTitle.innerText=loginForm.style.display==="block"?"Login":"Create Account"
-}
-
-/* USER */
-function loadUser(){
- const u=users[currentUser];
- mainBalance.innerText=`$${u.main.toFixed(2)}`;
- investedBalance.innerText=`$${u.invested.toFixed(2)}`;
- totalProfit.innerText=`$${u.profit.toFixed(2)}`;
- activities.innerHTML="";
- u.activity.forEach(addActivity);
- dailyInterest()
-}
-
-function dailyInterest(){
- const u=users[currentUser],today=nyDate();
- if(u.lastInterest!==today){
-   u.main+=65;u.profit+=65;
-   u.lastInterest=today;
-   u.activity.push("Daily interest +$65");
-   save();loadUser()
- }
-}
-
-/* ACTIONS */
-function deposit(){addActivity("Deposit pending")}
-function invest(){
- const amt=Number(amount.value);
- users[currentUser].invested+=amt;
- users[currentUser].activity.push("Invested $"+amt);
- save();loadUser()
-}
-function withdraw(){
- const u=users[currentUser];
- if(Date.now()-u.created<15768000000){
-   alert("Withdrawals locked for 6 months");return
- }
- alert("Withdrawal request sent")
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,Segoe UI,Arial;
+  line-height:1.6;
 }
 
 /* NAV */
-function showSection(id){
- ["dashboard","investment","history","admin"]
- .forEach(s=>document.getElementById(s).style.display="none");
- document.getElementById(id).style.display="block"
+.nav{
+  position:fixed;
+  top:0;left:0;width:100%;
+  background:#0f1318;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 25px;
+  border-bottom:1px solid var(--border);
+  z-index:999;
+}
+.nav h1{color:var(--primary);font-size:18px}
+.nav-links a{
+  color:var(--text);
+  margin-left:15px;
+  text-decoration:none;
+  padding:8px 12px;
+  border-radius:6px;
+  transition:.3s;
+}
+.nav-links a:hover{background:var(--card)}
+
+/* CONTAINER */
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:100px 20px 40px;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.9);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+.modal-box{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:25px;
+  width:100%;
+  max-width:420px;
+}
+.modal-box h2{
+  color:var(--primary);
+  margin-bottom:15px;
+  text-align:center;
+}
+.modal-box input{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  background:#0b0e11;
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:6px;
+}
+.modal-box button{
+  width:100%;
+  padding:12px;
+  background:var(--primary);
+  border:none;
+  border-radius:6px;
+  font-weight:600;
+  cursor:pointer;
+}
+.link{
+  color:var(--primary);
+  text-align:center;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+/* DASHBOARD */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  margin-bottom:25px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  transition:.3s;
+}
+.card:hover{transform:translateY(-3px)}
+.card h3{color:var(--muted);font-size:14px}
+.card p{font-size:22px;margin-top:10px}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:20px;
+}
+.section{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
+/* TRANSACTIONS */
+.tx{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+}
+.tx:last-child{border:none}
+
+/* PRICING */
+.pricing{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+}
+.plan{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  text-align:center;
+}
+.plan h4{color:var(--primary)}
+.plan button{
+  margin-top:15px;
+  background:var(--primary);
+  border:none;
+  padding:10px 15px;
+  border-radius:6px;
+  cursor:pointer;
 }
 
 /* ADMIN */
-function showAdmin(){
- loginModal.style.display="none";showSection("admin");
- userList.innerHTML="";
- Object.keys(users).forEach(e=>{
-   const d=document.createElement("div");
-   d.className="admin-user";
-   d.innerText=e;
-   d.onclick=()=>{currentUser=e;loadUser();showSection("dashboard")};
-   userList.appendChild(d)
- })
+.admin-user{
+  padding:12px;
+  background:#0b0e11;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:8px;
+  cursor:pointer;
 }
+.admin-user:hover{background:#1e2329}
+
+/* MOBILE */
+@media(max-width:768px){
+  .cards{grid-template-columns:1fr 1fr}
+  .grid{grid-template-columns:1fr}
+  .pricing{grid-template-columns:1fr}
+  .nav-links{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<div class="nav">
+  <h1>Stock Exchange Market</h1>
+  <div class="nav-links">
+    <a onclick="show('dashboard')">Dashboard</a>
+    <a onclick="show('admin')">Admin</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="auth" class="modal">
+  <div class="modal-box">
+    <h2 id="authTitle">Login</h2>
+
+    <div id="login">
+      <input id="loginEmail" placeholder="Email">
+      <input id="loginPass" type="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <div class="link" onclick="toggle()">Create Account</div>
+    </div>
+
+    <div id="register" style="display:none">
+      <input id="name" placeholder="Full Name">
+      <input id="email" placeholder="Email">
+      <input id="pass" type="password" placeholder="Password">
+      <button onclick="register()">Create Account</button>
+      <div class="link" onclick="toggle()">Back to Login</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="container">
+  <div class="cards">
+    <div class="card"><h3>Main Balance</h3><p id="main">$0.00</p></div>
+    <div class="card"><h3>Invested</h3><p id="invested">$0.00</p></div>
+    <div class="card"><h3>Daily Interest</h3><p>$65.00</p></div>
+    <div class="card"><h3>Total Profit</h3><p id="profit">$0.00</p></div>
+  </div>
+
+  <div class="grid">
+    <div class="section">
+      <h3>Portfolio Growth</h3>
+      <canvas id="chart"></canvas>
+    </div>
+
+    <div class="section">
+      <h3>Recent Activity</h3>
+      <div id="activity"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Investment Plans</h3>
+    <div class="pricing">
+      <div class="plan"><h4>Starter</h4><p>5% Weekly</p><button>Invest</button></div>
+      <div class="plan"><h4>Pro</h4><p>12% Weekly</p><button>Invest</button></div>
+      <div class="plan"><h4>Enterprise</h4><p>20% Weekly</p><button>Invest</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="container" style="display:none">
+  <h2>Admin Dashboard</h2>
+  <div id="users"></div>
+</div>
+
+<script>
+const users=JSON.parse(localStorage.getItem("users")||"{}");
+let current=localStorage.getItem("current");
+
+function save(){localStorage.setItem("users",JSON.stringify(users))}
+
+function show(id){
+ document.querySelectorAll(".container").forEach(d=>d.style.display="none");
+ document.getElementById(id).style.display="block";
+}
+
+function login(){
+ const e=loginEmail.value,p=loginPass.value;
+ if(e==="joyreuben122@gmail.com"&&p==="Joyie"){
+   show("admin");renderAdmin();auth.style.display="none";return;
+ }
+ if(!users[e]||users[e].pass!==p)return alert("Invalid login");
+ current=e;localStorage.setItem("current",e);
+ auth.style.display="none";load();
+}
+
+function register(){
+ users[email.value]={name:name.value,pass:pass.value,main:0,profit:0,log:[]};
+ save();toggle();
+}
+
+function load(){
+ const u=users[current];
+ main.innerText="$"+u.main.toFixed(2);
+ profit.innerText="$"+u.profit.toFixed(2);
+ activity.innerHTML=u.log.map(x=>`<div class="tx">${x}</div>`).join("");
+ show("dashboard");
+}
+
+function logout(){
+ localStorage.clear();location.reload();
+}
+
+function toggle(){
+ login.style.display=login.style.display==="none"?"block":"none";
+ register.style.display=register.style.display==="none"?"block":"none";
+ authTitle.innerText=login.style.display==="block"?"Login":"Create Account";
+}
+
+function renderAdmin(){
+ usersDiv=document.getElementById("users");
+ usersDiv.innerHTML="";
+ Object.keys(users).forEach(u=>{
+   usersDiv.innerHTML+=`<div class="admin-user">${u}</div>`;
+ });
+}
+
+window.onload=()=>{
+ if(current){auth.style.display="none";load()}
+ else auth.style.display="flex";
+}
+
+new Chart(chart,{
+ type:"line",
+ data:{labels:["Jan","Feb","Mar","Apr","May"],datasets:[{data:[2,3,4,6,8],borderColor:"#f0b90b"}]},
+ options:{responsive:true}
+});
 </script>
+
 </body>
 </html>
