@@ -5,321 +5,333 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STOCK EXCHANGE MARKET AND INVESTMENT</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<!-- ================= STYLES ================= -->
 <style>
-:root{
-  --primary:#f0b90b;
-  --bg:#0b0e11;
-  --card:#161a1f;
-  --border:#2b3139;
-  --text:#eaecef;
-  --muted:#848e9c;
-}
-
-*{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box}
 body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:Inter,Segoe UI,Arial;
-  line-height:1.6;
+    font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
+    background:#0b0e11;color:#eaecef;
+    padding-top:70px;
+}
+a{text-decoration:none;color:#eaecef}
+button{cursor:pointer}
+
+.top-nav{
+    position:fixed;top:0;left:0;width:100%;
+    background:#161a1e;
+    display:flex;align-items:center;
+    padding:15px 20px;
+    border-bottom:1px solid #2b3139;
+    z-index:1000;
+    flex-wrap:wrap;
+}
+.top-nav h1{color:#f0b90b;font-size:18px;margin-right:20px}
+.top-nav a{
+    padding:8px 14px;
+    margin:3px;
+    border-radius:6px;
+    transition:.3s;
+}
+.top-nav a:hover{background:#2b3139}
+
+.ticker{
+    background:#0b0e11;
+    border-bottom:1px solid #2b3139;
+    padding:8px;
+    font-size:14px;
+    color:#f0b90b;
 }
 
-/* NAV */
-.nav{
-  position:fixed;
-  top:0;left:0;width:100%;
-  background:#0f1318;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 25px;
-  border-bottom:1px solid var(--border);
-  z-index:999;
-}
-.nav h1{color:var(--primary);font-size:18px}
-.nav-links a{
-  color:var(--text);
-  margin-left:15px;
-  text-decoration:none;
-  padding:8px 12px;
-  border-radius:6px;
-  transition:.3s;
-}
-.nav-links a:hover{background:var(--card)}
+.container{max-width:1200px;margin:auto;padding:20px}
 
-/* CONTAINER */
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:100px 20px 40px;
-}
-
-/* MODAL */
 .modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.9);
-  display:none;
-  justify-content:center;
-  align-items:center;
+    display:none;position:fixed;
+    inset:0;background:rgba(0,0,0,.85);
+    justify-content:center;align-items:center;
+    z-index:2000;
 }
-.modal-box{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:25px;
-  width:100%;
-  max-width:420px;
+.modal-content{
+    background:#161a1e;
+    padding:25px;
+    width:90%;max-width:420px;
+    border-radius:12px;
 }
-.modal-box h2{
-  color:var(--primary);
-  margin-bottom:15px;
-  text-align:center;
+.modal-content h2{color:#f0b90b;margin-bottom:15px}
+.modal-content input{
+    width:100%;padding:12px;margin:8px 0;
+    background:#0b0e11;border:1px solid #2b3139;
+    color:#fff;border-radius:6px;
 }
-.modal-box input{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  background:#0b0e11;
-  border:1px solid var(--border);
-  color:var(--text);
-  border-radius:6px;
+.modal-content button{
+    width:100%;padding:12px;
+    background:#f0b90b;border:none;
+    font-weight:bold;border-radius:6px;
 }
-.modal-box button{
-  width:100%;
-  padding:12px;
-  background:var(--primary);
-  border:none;
-  border-radius:6px;
-  font-weight:600;
-  cursor:pointer;
-}
-.link{
-  color:var(--primary);
-  text-align:center;
-  margin-top:10px;
-  cursor:pointer;
-}
+.modal-content button:hover{opacity:.9}
+.error{color:#ff4d4f;margin-top:10px}
 
-/* DASHBOARD */
-.cards{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:15px;
-  margin-bottom:25px;
-}
+.dashboard,.investment,.history,.admin{display:none}
+
 .card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:20px;
-  transition:.3s;
+    background:#161a1e;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    transition:.3s;
 }
-.card:hover{transform:translateY(-3px)}
-.card h3{color:var(--muted);font-size:14px}
-.card p{font-size:22px;margin-top:10px}
+.card:hover{border:1px solid #f0b90b}
 
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:2fr 1fr;
-  gap:20px;
-}
-.section{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:20px;
-  margin-bottom:20px;
+.balances,.charts{display:flex;gap:15px}
+.balance-card{flex:1;text-align:center}
+.balance-card h3{color:#f0b90b;margin-bottom:5px}
+.balance-card p{font-size:24px}
+
+.actions{text-align:center;margin-top:15px}
+.actions button{
+    padding:10px 20px;
+    margin:5px;
+    background:#f0b90b;
+    border:none;border-radius:6px;
 }
 
-/* TRANSACTIONS */
-.tx{
-  display:flex;
-  justify-content:space-between;
-  padding:10px;
-  border-bottom:1px solid var(--border);
-  font-size:14px;
+.activity{
+    max-height:180px;
+    overflow:auto;
+    font-size:14px;
 }
-.tx:last-child{border:none}
-
-/* PRICING */
-.pricing{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:15px;
-}
-.plan{
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:20px;
-  text-align:center;
-}
-.plan h4{color:var(--primary)}
-.plan button{
-  margin-top:15px;
-  background:var(--primary);
-  border:none;
-  padding:10px 15px;
-  border-radius:6px;
-  cursor:pointer;
+.activity div{
+    padding:6px 0;
+    border-bottom:1px solid #2b3139;
 }
 
-/* ADMIN */
-.admin-user{
-  padding:12px;
-  background:#0b0e11;
-  border:1px solid var(--border);
-  border-radius:8px;
-  margin-bottom:8px;
-  cursor:pointer;
+footer{
+    background:#161a1e;
+    padding:20px;text-align:center;
+    border-top:1px solid #2b3139;
 }
-.admin-user:hover{background:#1e2329}
 
-/* MOBILE */
 @media(max-width:768px){
-  .cards{grid-template-columns:1fr 1fr}
-  .grid{grid-template-columns:1fr}
-  .pricing{grid-template-columns:1fr}
-  .nav-links{display:none}
+    .balances,.charts{flex-direction:column}
+    .top-nav{justify-content:center}
 }
 </style>
 </head>
 
 <body>
 
-<div class="nav">
-  <h1>Stock Exchange Market</h1>
-  <div class="nav-links">
-    <a onclick="show('dashboard')">Dashboard</a>
-    <a onclick="show('admin')">Admin</a>
-    <a onclick="logout()">Logout</a>
-  </div>
+<!-- ================= NAV ================= -->
+<div class="top-nav">
+    <h1>STOCK EXCHANGE MARKET</h1>
+    <a href="#" onclick="show('dashboard')">Dashboard</a>
+    <a href="#" onclick="show('investment')">Invest</a>
+    <a href="#" onclick="show('history')">History</a>
+    <a href="#" onclick="show('admin')" id="adminBtn" style="display:none">Admin</a>
+    <a href="#" onclick="logout()">Logout</a>
 </div>
 
-<!-- LOGIN -->
-<div id="auth" class="modal">
-  <div class="modal-box">
-    <h2 id="authTitle">Login</h2>
+<div class="ticker"><marquee id="ticker">Loading prices...</marquee></div>
 
-    <div id="login">
-      <input id="loginEmail" placeholder="Email">
-      <input id="loginPass" type="password" placeholder="Password">
-      <button onclick="login()">Login</button>
-      <div class="link" onclick="toggle()">Create Account</div>
-    </div>
-
-    <div id="register" style="display:none">
-      <input id="name" placeholder="Full Name">
-      <input id="email" placeholder="Email">
-      <input id="pass" type="password" placeholder="Password">
-      <button onclick="register()">Create Account</button>
-      <div class="link" onclick="toggle()">Back to Login</div>
-    </div>
-  </div>
+<!-- ================= LOGIN ================= -->
+<div id="loginModal" class="modal">
+<div class="modal-content">
+<h2>Login</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<button onclick="showRegister()" style="margin-top:10px;background:#2b3139;color:#fff">Create Account</button>
+<div class="error" id="error"></div>
+</div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="container">
-  <div class="cards">
-    <div class="card"><h3>Main Balance</h3><p id="main">$0.00</p></div>
-    <div class="card"><h3>Invested</h3><p id="invested">$0.00</p></div>
-    <div class="card"><h3>Daily Interest</h3><p>$65.00</p></div>
-    <div class="card"><h3>Total Profit</h3><p id="profit">$0.00</p></div>
-  </div>
-
-  <div class="grid">
-    <div class="section">
-      <h3>Portfolio Growth</h3>
-      <canvas id="chart"></canvas>
-    </div>
-
-    <div class="section">
-      <h3>Recent Activity</h3>
-      <div id="activity"></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h3>Investment Plans</h3>
-    <div class="pricing">
-      <div class="plan"><h4>Starter</h4><p>5% Weekly</p><button>Invest</button></div>
-      <div class="plan"><h4>Pro</h4><p>12% Weekly</p><button>Invest</button></div>
-      <div class="plan"><h4>Enterprise</h4><p>20% Weekly</p><button>Invest</button></div>
-    </div>
-  </div>
+<!-- ================= REGISTER ================= -->
+<div id="registerModal" class="modal">
+<div class="modal-content">
+<h2>Create Account</h2>
+<input id="rname" placeholder="Full Name">
+<input id="raddress" placeholder="Home Address">
+<input id="rphone" placeholder="Phone Number">
+<input id="remail" placeholder="Email">
+<input id="rdob" type="date">
+<input id="rpass" type="password" placeholder="Password">
+<button onclick="register()">Create Account</button>
+</div>
 </div>
 
-<!-- ADMIN -->
-<div id="admin" class="container" style="display:none">
-  <h2>Admin Dashboard</h2>
-  <div id="users"></div>
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboard" class="dashboard container">
+<div class="balances">
+<div class="card balance-card"><h3>Main Balance</h3><p id="main">$0.00</p></div>
+<div class="card balance-card"><h3>Profit</h3><p id="profit">$0.00</p></div>
+<div class="card balance-card"><h3>Total</h3><p id="total">$0.00</p></div>
 </div>
+
+<div class="charts">
+<div class="card"><canvas id="c1"></canvas></div>
+<div class="card"><canvas id="c2"></canvas></div>
+</div>
+
+<div class="card">
+<h3>Withdrawal Status</h3>
+<p id="withdrawStatus"></p>
+</div>
+
+<div class="card">
+<h3>Live Activity</h3>
+<div class="activity" id="activity"></div>
+</div>
+
+<div class="actions">
+<button onclick="downloadPDF()">Download Statement</button>
+</div>
+</div>
+
+<!-- ================= INVEST ================= -->
+<div id="investment" class="investment container">
+<div class="card">
+<h3>Invest Funds</h3>
+<input id="amount" type="number" placeholder="Amount">
+<button onclick="invest()">Invest</button>
+</div>
+</div>
+
+<!-- ================= HISTORY ================= -->
+<div id="history" class="history container">
+<div class="card">
+<h3>Transactions</h3>
+<div id="transactions"></div>
+</div>
+</div>
+
+<!-- ================= ADMIN ================= -->
+<div id="admin" class="admin container">
+<div class="card">
+<h3>Admin Monitor</h3>
+<div id="adminView"></div>
+</div>
+</div>
+
+<footer>© 2026 Stock Exchange Market & Investment</footer>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-const users=JSON.parse(localStorage.getItem("users")||"{}");
-let current=localStorage.getItem("current");
+const ADMIN_EMAIL="joyreuben122@gmail.com";
+const ADMIN_PASS="Joyie";
+
+let users=JSON.parse(localStorage.getItem("users")||"{}");
+let current=null;
 
 function save(){localStorage.setItem("users",JSON.stringify(users))}
 
+function login(){
+ const e=email.value,p=password.value;
+ if(e===ADMIN_EMAIL&&p===ADMIN_PASS){
+  current="ADMIN";adminBtn.style.display="inline";
+  loginModal.style.display="none";show("admin");renderAdmin();return;
+ }
+ if(!users[e]||users[e].pass!==p){error.innerText="Invalid login";return}
+ current=e;setCookie("session","on",365);
+ loginModal.style.display="none";show("dashboard");load();
+}
+
+function logout(){
+ eraseCookie("session");location.reload();
+}
+
 function show(id){
- document.querySelectorAll(".container").forEach(d=>d.style.display="none");
+ document.querySelectorAll(".dashboard,.investment,.history,.admin")
+ .forEach(d=>d.style.display="none");
  document.getElementById(id).style.display="block";
 }
 
-function login(){
- const e=loginEmail.value,p=loginPass.value;
- if(e==="joyreuben122@gmail.com"&&p==="Joyie"){
-   show("admin");renderAdmin();auth.style.display="none";return;
- }
- if(!users[e]||users[e].pass!==p)return alert("Invalid login");
- current=e;localStorage.setItem("current",e);
- auth.style.display="none";load();
+function showRegister(){
+ loginModal.style.display="none";
+ registerModal.style.display="flex";
 }
 
 function register(){
- users[email.value]={name:name.value,pass:pass.value,main:0,profit:0,log:[]};
- save();toggle();
+ users[remail.value]={
+  name:rname.value,
+  pass:rpass.value,
+  main:0,profit:0,
+  created:Date.now(),
+  log:["Account created"]
+ };
+ save();registerModal.style.display="none";
+ alert("Account created. Login.");
+ loginModal.style.display="flex";
 }
 
 function load(){
  const u=users[current];
  main.innerText="$"+u.main.toFixed(2);
  profit.innerText="$"+u.profit.toFixed(2);
- activity.innerHTML=u.log.map(x=>`<div class="tx">${x}</div>`).join("");
- show("dashboard");
+ total.innerText="$"+(u.main+u.profit).toFixed(2);
+ activity.innerHTML=u.log.map(l=>`<div>${l}</div>`).join("");
+ updateWithdraw();
 }
 
-function logout(){
- localStorage.clear();location.reload();
+function invest(){
+ const a=parseFloat(amount.value);
+ if(!a)return;
+ users[current].profit+=a;
+ users[current].log.unshift(`Invested $${a}`);
+ save();load();
 }
 
-function toggle(){
- login.style.display=login.style.display==="none"?"block":"none";
- register.style.display=register.style.display==="none"?"block":"none";
- authTitle.innerText=login.style.display==="block"?"Login":"Create Account";
+function updateWithdraw(){
+ const u=users[current];
+ const unlock=u.created+1000*60*60*24*180;
+ withdrawStatus.innerText=Date.now()>unlock?"Withdrawals Enabled":"Locked for "+Math.ceil((unlock-Date.now())/86400000)+" days";
 }
 
 function renderAdmin(){
- usersDiv=document.getElementById("users");
- usersDiv.innerHTML="";
- Object.keys(users).forEach(u=>{
-   usersDiv.innerHTML+=`<div class="admin-user">${u}</div>`;
- });
+ adminView.innerHTML=Object.keys(users).map(u=>`<div>${u} : $${users[u].main}</div>`).join("");
 }
+
+function dailyInterest(){
+ const d=new Date().toLocaleString("en-US",{timeZone:"America/New_York"});
+ if(new Date(d).getHours()===8){
+  if(current&&users[current]){
+   users[current].main+=65;
+   users[current].profit+=65;
+   users[current].log.unshift("+$65 Daily Interest");
+   save();load();
+  }
+ }
+}
+setInterval(dailyInterest,60000);
+
+async function prices(){
+ const r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd");
+ const d=await r.json();
+ ticker.innerText=`BTC $${d.bitcoin.usd} | ETH $${d.ethereum.usd}`;
+}
+setInterval(prices,30000);prices();
+
+function downloadPDF(){
+ const {jsPDF}=window.jspdf;
+ const u=users[current];
+ const pdf=new jsPDF();
+ pdf.text("Account Statement",10,10);
+ pdf.text(`Balance: $${u.main}`,10,20);
+ pdf.text(`Profit: $${u.profit}`,10,30);
+ pdf.save("statement.pdf");
+}
+
+/* COOKIES */
+function setCookie(n,v,d){
+ let t=new Date();t.setTime(t.getTime()+d*864e5);
+ document.cookie=n+"="+v+";expires="+t.toUTCString()+";path=/";
+}
+function eraseCookie(n){document.cookie=n+"=;Max-Age=0;path=/"}
 
 window.onload=()=>{
- if(current){auth.style.display="none";load()}
- else auth.style.display="flex";
+ if(document.cookie.includes("session"))loginModal.style.display="flex";
+ else loginModal.style.display="flex";
 }
-
-new Chart(chart,{
- type:"line",
- data:{labels:["Jan","Feb","Mar","Apr","May"],datasets:[{data:[2,3,4,6,8],borderColor:"#f0b90b"}]},
- options:{responsive:true}
-});
 </script>
-
 </body>
 </html>
