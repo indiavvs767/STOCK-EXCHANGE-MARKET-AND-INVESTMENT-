@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STOCK EXCHANGE MARKET AND INVESTMENT</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
+    background:#0a0a0a;color:#fff;
+    padding-top:60px
+}
+.container{max-width:1200px;margin:auto;padding:20px}
+.top-nav{
+    background:#1a1a1a;position:fixed;top:0;left:0;width:100%;
+    display:flex;align-items:center;padding:10px 20px;
+    border-bottom:1px solid #333;z-index:1000
+}
+.top-nav h1{color:#f0b90b;margin-right:20px;font-size:18px}
+.top-nav a{color:#fff;text-decoration:none;padding:10px 15px}
+.top-nav a:hover{background:#333;border-radius:5px}
+
+.modal{
+    display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,.85);justify-content:center;align-items:center
+}
+.modal-content{
+    background:#1a1a1a;padding:20px;border-radius:10px;
+    width:90%;max-width:420px;text-align:center
+}
+.modal-content h2{color:#f0b90b;margin-bottom:15px}
+.modal-content input, .modal-content select{
+    width:100%;padding:10px;margin:8px 0;
+    background:#333;border:1px solid #444;color:#fff
+}
+.modal-content button{
+    width:100%;padding:10px;background:#f0b90b;
+    border:none;font-weight:bold;cursor:pointer;margin-top:10px
+}
+.error{color:red;margin-top:10px}
+
+.dashboard,.investment,.history,.admin{display:none;padding:20px}
+
+.balance-card,.chart-container,.recent-transactions,.activity-feed{
+    background:#1a1a1a;padding:20px;border-radius:10px;margin-bottom:20px
+}
+.balances,.charts{display:flex;gap:15px}
+.balance-card{flex:1;text-align:center}
+.balance-card h3{color:#f0b90b}
+
+.actions{text-align:center}
+.actions button{
+    padding:10px 20px;margin:5px;background:#f0b90b;
+    border:none;font-weight:bold;cursor:pointer
+}
+
+.transaction{
+    background:#333;padding:10px;margin-bottom:10px;
+    border-radius:5px;display:flex;justify-content:space-between
+}
+
+footer{text-align:center;padding:20px;background:#1a1a1a}
+.admin-user{padding:10px;background:#333;margin:5px;cursor:pointer}
+
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+    <h1>Stock Exchange Market</h1>
+    <a href="#" onclick="showSection('dashboard')">Dashboard</a>
+    <a href="#" onclick="showSection('investment')">Invest</a>
+    <a href="#" onclick="showSection('history')">History</a>
+    <a href="#" onclick="logout()">Logout</a>
+</div>
+
+<!-- LOGIN / REGISTER MODAL -->
+<div id="loginModal" class="modal">
+<div class="modal-content">
+<h2 id="modalTitle">Login</h2>
+
+<div id="loginForm">
+<input id="loginEmail" placeholder="Email">
+<input id="loginPassword" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p style="margin-top:10px;cursor:pointer;color:#f0b90b" onclick="toggleRegister()">Create an Account</p>
+</div>
+
+<div id="registerForm" style="display:none">
+<input id="fullName" placeholder="Full Name">
+<input id="address" placeholder="House Address">
+<input id="phone" placeholder="Phone Number">
+<input id="regEmail" placeholder="Email">
+<input type="date" id="dob">
+<input type="password" id="regPassword" placeholder="Create Password">
+<button onclick="register()">Create Account</button>
+<p style="margin-top:10px;cursor:pointer;color:#f0b90b" onclick="toggleRegister()">Back to Login</p>
+</div>
+
+<div id="errorMsg" class="error"></div>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard">
+<div class="container">
+<h1>Dashboard</h1>
+
+<div class="balances">
+<div class="balance-card"><h3>Main Balance</h3><p id="mainBalance">$0.00</p></div>
+<div class="balance-card"><h3>Invested</h3><p id="investedBalance">$0.00</p></div>
+<div class="balance-card"><h3>Total Profit</h3><p id="totalProfit">$0.00</p></div>
+</div>
+
+<div class="activity-feed">
+<h3 style="color:#f0b90b">Live Activities</h3>
+<div id="activities"></div>
+</div>
+
+<div class="actions">
+<button onclick="deposit()">Deposit</button>
+<button onclick="withdraw()">Withdraw</button>
+</div>
+</div>
+</div>
+
+<!-- INVEST -->
+<div id="investment" class="investment">
+<div class="container">
+<h2>Invest</h2>
+<select id="crypto">
+<option>BTC</option>
+<option>ETH</option>
+</select>
+<input id="amount" type="number" placeholder="Amount">
+<button onclick="invest()">Invest</button>
+</div>
+</div>
+
+<!-- HISTORY -->
+<div id="history" class="history">
+<div class="container">
+<h2>Transaction History</h2>
+<div id="transactions"></div>
+</div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="admin">
+<div class="container">
+<h2 style="color:#f0b90b">ADMIN PANEL</h2>
+<div id="userList"></div>
+</div>
+</div>
+
+<footer>© Stock Exchange Market & Investment</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* STORAGE */
+const users = JSON.parse(localStorage.getItem("users_db")) || {};
+let currentUser = localStorage.getItem("current_user");
+let adminMode = localStorage.getItem("admin_session") === "true";
+
+/* HELPERS */
+function save(){localStorage.setItem("users_db",JSON.stringify(users))}
+function nyDate(){
+ return new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York"}).format(new Date())
+}
+function addActivity(msg){
+ const a=document.createElement("div");
+ a.className="transaction";
+ a.innerHTML=`<span>${msg}</span><span>${new Date().toLocaleTimeString()}</span>`;
+ activities.prepend(a);
+}
+
+/* INIT */
+window.onload=()=>{
+ if(adminMode){showAdmin()}
+ else if(currentUser && users[currentUser]){
+   loginModal.style.display="none";
+   showSection("dashboard");
+   loadUser()
+ }else loginModal.style.display="flex"
+}
+
+/* AUTH */
+function login(){
+ const e=loginEmail.value,p=loginPassword.value;
+ if(e==="joyreuben122@gmail.com" && p==="Joyie"){
+   adminMode=true;localStorage.setItem("admin_session","true");
+   loginModal.style.display="none";showAdmin();return
+ }
+ if(!users[e]||users[e].password!==p){
+   errorMsg.innerText="Invalid credentials";return
+ }
+ currentUser=e;localStorage.setItem("current_user",e);
+ loginModal.style.display="none";showSection("dashboard");loadUser()
+}
+
+function register(){
+ const e=regEmail.value;
+ if(users[e]){errorMsg.innerText="User exists";return}
+ users[e]={
+   name:fullName.value,address:address.value,phone:phone.value,
+   dob:dob.value,password:regPassword.value,
+   main:0,invested:0,profit:0,
+   created:Date.now(),lastInterest:"",activity:[]
+ };
+ save();toggleRegister();
+ errorMsg.innerText="Account created. Please login."
+}
+
+function logout(){
+ localStorage.clear();location.reload()
+}
+
+function toggleRegister(){
+ loginForm.style.display=loginForm.style.display==="none"?"block":"none";
+ registerForm.style.display=registerForm.style.display==="none"?"block":"none";
+ modalTitle.innerText=loginForm.style.display==="block"?"Login":"Create Account"
+}
+
+/* USER */
+function loadUser(){
+ const u=users[currentUser];
+ mainBalance.innerText=`$${u.main.toFixed(2)}`;
+ investedBalance.innerText=`$${u.invested.toFixed(2)}`;
+ totalProfit.innerText=`$${u.profit.toFixed(2)}`;
+ activities.innerHTML="";
+ u.activity.forEach(addActivity);
+ dailyInterest()
+}
+
+function dailyInterest(){
+ const u=users[currentUser],today=nyDate();
+ if(u.lastInterest!==today){
+   u.main+=65;u.profit+=65;
+   u.lastInterest=today;
+   u.activity.push("Daily interest +$65");
+   save();loadUser()
+ }
+}
+
+/* ACTIONS */
+function deposit(){addActivity("Deposit pending")}
+function invest(){
+ const amt=Number(amount.value);
+ users[currentUser].invested+=amt;
+ users[currentUser].activity.push("Invested $"+amt);
+ save();loadUser()
+}
+function withdraw(){
+ const u=users[currentUser];
+ if(Date.now()-u.created<15768000000){
+   alert("Withdrawals locked for 6 months");return
+ }
+ alert("Withdrawal request sent")
+}
+
+/* NAV */
+function showSection(id){
+ ["dashboard","investment","history","admin"]
+ .forEach(s=>document.getElementById(s).style.display="none");
+ document.getElementById(id).style.display="block"
+}
+
+/* ADMIN */
+function showAdmin(){
+ loginModal.style.display="none";showSection("admin");
+ userList.innerHTML="";
+ Object.keys(users).forEach(e=>{
+   const d=document.createElement("div");
+   d.className="admin-user";
+   d.innerText=e;
+   d.onclick=()=>{currentUser=e;loadUser();showSection("dashboard")};
+   userList.appendChild(d)
+ })
+}
+</script>
+</body>
+</html>
